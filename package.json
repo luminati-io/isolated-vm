@@ -1,6 +1,6 @@
 {
   "name": "isolated-vm",
-  "version": "4.5.0-lum.1",
+  "version": "4.5.0-lum.2",
   "description": "Access to multiple isolates",
   "main": "isolated-vm.js",
   "types": "isolated-vm.d.ts",
