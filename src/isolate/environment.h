@@ -32,6 +32,12 @@
 
 namespace ivm {
 
+#if !V8_AT_LEAST(7, 9, 69)
+class BackingStore;
+#else
+using BackingStore = v8::BackingStore;
+#endif
+
 /**
  * Wrapper around Isolate with helpers to make working with multiple isolates easier.
  */
@@ -93,7 +99,7 @@ class IsolateEnvironment {
 		std::unique_ptr<class InspectorAgent> inspector_agent;
 		v8::Persistent<v8::Context> default_context;
 		std::shared_ptr<v8::ArrayBuffer::Allocator> allocator_ptr;
-		std::shared_ptr<v8::BackingStore> snapshot_blob_ptr;
+		std::shared_ptr<BackingStore> snapshot_blob_ptr;
 		v8::StartupData startup_data{};
 		void* timer_holder = nullptr;
 		size_t memory_limit = 0;
@@ -143,8 +149,13 @@ class IsolateEnvironment {
 		void PromiseWasHandled(v8::Local<v8::Promise> promise);
 
 	private:
+
+#if V8_AT_LEAST(8, 0, 160)
+		// v8 commit 6c0825aa
+#define USE_CODE_GEN_CALLBACK
 		static auto CodeGenCallback(v8::Local<v8::Context> context, v8::Local<v8::Value> source) -> v8::ModifyCodeGenerationFromStringsResult;
 		static auto CodeGenCallback2(v8::Local<v8::Context> context, v8::Local<v8::Value> source, bool) -> v8::ModifyCodeGenerationFromStringsResult;
+#endif
 
 		/**
 		 * GC hooks to kill this isolate before it runs out of memory
@@ -163,7 +174,7 @@ class IsolateEnvironment {
 		/**
 		 * Create a new wrapped Isolate.
 		 */
-		void IsolateCtor(size_t memory_limit_in_mb, std::shared_ptr<v8::BackingStore> snapshot_blob, size_t snapshot_length);
+		void IsolateCtor(size_t memory_limit_in_mb, std::shared_ptr<BackingStore> snapshot_blob, size_t snapshot_length);
 
 	public:
 		/**
@@ -186,7 +197,7 @@ class IsolateEnvironment {
 			return holder;
 		}
 
-		static auto New(size_t memory_limit_in_mb, std::shared_ptr<v8::BackingStore> snapshot_blob, size_t snapshot_length) -> std::shared_ptr<IsolateHolder> {
+		static auto New(size_t memory_limit_in_mb, std::shared_ptr<BackingStore> snapshot_blob, size_t snapshot_length) -> std::shared_ptr<IsolateHolder> {
 			auto env = std::make_shared<IsolateEnvironment>(static_cast<UvScheduler&>(*Executor::GetDefaultEnvironment().scheduler));
 			auto holder = std::make_shared<IsolateHolder>(env);
 			env->holder = holder;

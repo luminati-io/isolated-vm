@@ -73,15 +73,21 @@ ExternalCopyString::ExternalCopyString(Local<String> string) :
 	if (string->IsOneByte()) {
 		one_byte = true;
 		value = std::make_shared<std::vector<char>>(string->Length());
+#if V8_AT_LEAST(6, 9, 408)
+		string->WriteOneByte(Isolate::GetCurrent(),
+#else
 		string->WriteOneByte(
-			Isolate::GetCurrent(),
+#endif
 			reinterpret_cast<uint8_t*>(value->data()), 0, -1, String::WriteOptions::NO_NULL_TERMINATION
 		);
 	} else {
 		one_byte = false;
 		value = std::make_shared<std::vector<char>>(string->Length() << 1);
+#if V8_AT_LEAST(6, 9, 408)
+		string->Write(Isolate::GetCurrent(),
+#else
 		string->Write(
-			Isolate::GetCurrent(),
+#endif
 			reinterpret_cast<uint16_t*>(value->data()), 0, -1, String::WriteOptions::NO_NULL_TERMINATION
 		);
 	}

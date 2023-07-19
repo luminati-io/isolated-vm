@@ -97,7 +97,7 @@ class Scheduler {
 		Status status = Status::Waiting;
 };
 
-class LockedScheduler : protected Scheduler, public node::IsolatePlatformDelegate {
+class LockedScheduler : protected Scheduler, public IsolatePlatformDelegate {
 	friend Scheduler::AsyncWait;
 	public:
 		using Scheduler::Scheduler;
